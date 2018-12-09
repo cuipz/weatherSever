@@ -54,18 +54,19 @@
 
                 //回复用户消息(纯文本格式)
              	$content = $postObj->Content;
-        if($content == '北京天气'){
-                $toUser   = $postObj->FromUserName;
+        $str = mb_substr($content,-2,2,"UTF-8");
+        $str_key = mb_substr($content,0,-2,"UTF-8");
+        if($str == '天气' && !empty($str_key)){
+          $data = $this->weather($str_key);
+          if(!empty($data->weatherinfo)){
+            	$toUser   = $postObj->FromUserName;
                 $fromUser = $postObj->ToUserName;
                 $time     = time();
                 $msgType  =  'text';
-        /*        $content  = '北京
-今天白天 晴
-10~15℃
-东北风3~4级
-空气质量 良
-PM2.5：19';*/
-          		$content = 'http://154.8.223.24/weixin/weather';
+          		$content = "【".$data->weatherinfo->city."天气预报】\n".$data->weatherinfo->date_y." ".$data->weatherinfo->fchh."时发布"."\n\n实时天气\n"
+            .$data->weatherinfo->weather1." ".$data->weatherinfo->temp1." ".$data->weatherinfo->wind1."\n\n温馨提示：".$data->weatherinfo->index_d."\n\n明天\n"
+            .$data->weatherinfo->weather2." ".$data->weatherinfo->temp2." ".$data->weatherinfo->wind2."\n\n后天\n".$data->weatherinfo->weather3." "
+            .$data->weatherinfo->temp3." ".$data->weatherinfo->wind3;
                 $template = "<xml>
                                 <ToUserName><![CDATA[%s]]></ToUserName>
                                 <FromUserName><![CDATA[%s]]></FromUserName>
@@ -75,6 +76,24 @@ PM2.5：19';*/
                                 </xml>";
                 $info  = sprintf($template, $toUser, $fromUser, $time, $msgType, $content);
                 echo $info;
+          }else{
+                $toUser   = $postObj->FromUserName;
+                $fromUser = $postObj->ToUserName;
+                $time     = time();
+                $msgType  =  'text';
+          		$content = "抱歉，没有查到".$str_key."的天气信息！";
+                $template = "<xml>
+                                <ToUserName><![CDATA[%s]]></ToUserName>
+                                <FromUserName><![CDATA[%s]]></FromUserName>
+                                <CreateTime>%s</CreateTime>
+                                <MsgType><![CDATA[%s]]></MsgType>
+                                <Content><![CDATA[%s]]></Content>
+                                </xml>";
+                $info  = sprintf($template, $toUser, $fromUser, $time, $msgType, $content);
+                echo $info;
+          }
+          
+          
                 /*<xml>
                 <ToUserName><![CDATA[toUser]]></ToUserName>
                 <FromUserName><![CDATA[fromUser]]></FromUserName>
